@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Reservation System</title>
+
+    <!-- Link your external CSS file -->
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="logo">Reservation System</div>
+    <h2>Create Account</h2>
+
+    <form method="POST" action="{% url 'signup' %}">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label for="name">Name</label>
+            <input id="name" type="text" name="name" placeholder="Enter your name" required>
+        </div>
+
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" placeholder="Enter your email" required>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <div class="input-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input id="confirm_password" type="password" name="confirm_password" placeholder="Confirm your password" required>
+        </div>
+
+        <button type="submit" class="login-btn">Sign Up</button>
+    </form>
+
+    <div class="extra-links">
+        <p>Already have an account? <a href="{% url 'login-page-view' %}">Login</a></p>
+    </div>
+</div>
+
+</body>
+</html>
