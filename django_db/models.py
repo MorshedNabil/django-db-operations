@@ -8,5 +8,9 @@ class User(models.Model):
     email = models.EmailField(max_length=20, unique=True)
     password = models.CharField(max_length=255)
 
+    # Indexing on email field
+    class Meta:
+        indexes = [models.Index(fields=['email'])]
+
     def __str__(self):
         return f"User(id={self.user_id}, name='{self.name}', email='{self.email}')"

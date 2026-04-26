@@ -47,7 +47,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # Using custom JWT authentication that uses raw SQL instead of Django ORM
         "django_db.authentication.RawSQLJWTAuthentication",
-    )
+    ),
+    "DeFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 from datetime import timedelta
