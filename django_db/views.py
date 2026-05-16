@@ -146,15 +146,26 @@ def login(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@api_view(['POST', 'GET'])
 def logout(request):
     try:
-        refresh_token = request.data["refresh_token"]
-
-        token = RefreshToken(refresh_token)
-        token.blacklist()
-
-        return Response({"message": "Logout successful!"}, status=status.HTTP_200_OK)
+        response = Response({"message": "Logout successful!"}, status=status.HTTP_200_OK)
+        
+        # Clear the access token cookie
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        
+        # Try to blacklist the refresh token if provided
+        refresh_token = request.data.get('refresh_token') if request.method == 'POST' else request.COOKIES.get('refresh_token')
+        
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except:
+                pass  # Token blacklist failed, but logout still proceeds
+        
+        return response
     
     except Exception as e:
-        return Response({"message": "Logout failed!"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": f"Logout failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)

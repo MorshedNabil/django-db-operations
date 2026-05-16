@@ -17,7 +17,6 @@ class UserDB:
 
     @staticmethod
     def get_user_by_id(user_id):
-        # print(f"SELECT * FROM user WHERE user_id = '"+user_id+"'")
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM user WHERE user_id = %s", [user_id])
             columns = [col[0] for col in cursor.description]  # Extract all column names

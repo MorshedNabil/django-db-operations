@@ -10,6 +10,14 @@
 </head>
 <body>
 
+<div class="navbar">
+    <h1>Dashboard</h1>
+    <form method="POST" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</div>
+
 <h2>Your Reservations</h2>
 
 <table>
@@ -50,3 +58,32 @@
 
 </body>
 </html>
+
+<script>
+document.querySelector('.navbar form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    fetch('/api/auth/logout/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Logout failed');
+        }
+        return data;
+    })
+    .then(data => {
+        alert(data.message);
+        // Redirect to login page after successful logout
+        window.location.href = '/api/login/';
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        console.error('Logout error:', error);
+    });
+});
+</script>
