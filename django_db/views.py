@@ -11,6 +11,7 @@ from .authentication import RawSQLJWTAuthentication
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import render
+from django.core.cache import cache
 
 # ================= Web Views =================
 # To protect the web pages like dashboard, we will check for the presence of a valid access token in the cookies.
@@ -48,7 +49,18 @@ def home(request):
 def users(request):
     """FOR ADMIN ONLY: List all users or create a new user"""
     if request.method == "GET":
+        # Redis cache is applied for faster read 
+        cache_key = 'users'
+        # if data already in cache(cache hit) then return from the cache
+        cached_users = cache.get('users')
+
+        if cached_users is not None:
+            print("Data coming from cache")
+            return Response(cache.get('users'))
+
         users = UserDB.get_all_users()
+        cache.set(cache_key, users, timeout= 60*5) # so data will be stored in cache for 5 min
+
         return Response(users)
     
     elif request.method == "POST":
@@ -64,10 +76,10 @@ def users(request):
     
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def user_detail(request, user_id):
-    """FOR ADMIN ONLY: Retrieve, update, or delete a user by ID"""
+def user_detail(request, email):
+    """FOR ADMIN ONLY: Retrieve, update, or delete a user by email"""
     if request.method == "GET":
-        user = UserDB.get_user_by_id(user_id)
+        user = UserDB.get_user_by_id(email)
         if user:
             return Response(user)
         return Response({"message": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
@@ -79,12 +91,12 @@ def user_detail(request, user_id):
             email = serializer.validated_data['email']
             password = make_password(serializer.validated_data['password'])
 
-            result = UserDB.update_user(user_id, name, email, password)
+            result = UserDB.update_user(email, name, email, password)
             return Response(result)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == "DELETE":
-        result = UserDB.delete_user(user_id)
+        result = UserDB.delete_user(email)
         return Response(result, status=status.HTTP_200_OK)
     
     

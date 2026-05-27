@@ -17,6 +17,6 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
 
     # Admin user management endpoints
-    path("users/", views.users, name="users"),             # GET all users or POST create user
-    path("users/<str:user_id>/", views.user_detail, name="user-detail"),  # GET, PUT, DELETE by ID
+    path("users/", views.users, name="users"), # GET all users or POST create user
+    path("users/<str:email>/", views.user_detail, name="user-detail"),  # GET, PUT, DELETE by email
 ]
