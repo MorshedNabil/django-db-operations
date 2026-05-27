@@ -63,26 +63,3 @@ class UserDB:
             return (
                 dict(zip(columns, row)) if row else None
             )  # Return None if user not found
-
-# ====================== my scripts =======================
-# this script is for inserting 1000 users only
-from django.db import connection
-from django.contrib.auth.hashers import make_password
-
-def insert_1000_users():
-    users = []
-
-    for i in range(1, 1001): # 1000 times loop will run
-        name = f"User{i}"
-        email = f"user{i}@example.com"
-        password = make_password("password123")  # Django hash
-
-        users.append((name, email, password))
-
-    with connection.cursor() as cursor:
-        cursor.executemany(
-            "INSERT INTO user (name, email, password) VALUES (%s, %s, %s)",
-            users
-        )
-
-    print("1000 users inserted successfully!")
