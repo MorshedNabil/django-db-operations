@@ -48,8 +48,8 @@ REST_FRAMEWORK = {
         # Using custom JWT authentication that uses raw SQL instead of Django ORM
         "django_db.authentication.RawSQLJWTAuthentication",
     ),
-    "DeFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated", # for API endpoints, require authentication by default for all views unless explicitly overridden with @permission_classes([AllowAny]) or similar.
     ),
 }
 # ========= Implement Raw JWT ==============
@@ -116,6 +116,11 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "IGNORE_EXCEPTIONS": False,  # ← Show errors instead of silencing them
+            "CONNECTION_POOL_KWARGS": {
+                "health_check_interval": 30,
+                "retry_on_timeout": True,
+            }
         }
     }
 }

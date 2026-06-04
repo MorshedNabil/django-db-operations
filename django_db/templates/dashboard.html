@@ -12,10 +12,15 @@
 
 <div class="navbar">
     <h1>Dashboard</h1>
-    <form method="POST" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" class="logout-btn">Logout</button>
-    </form>
+    <div style="display: flex; gap: 10px;">
+        <button id="change-password-btn" class="change-password-btn" style="padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Change Password
+        </button>
+        <form method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
 </div>
 
 <h2>Your Reservations</h2>
@@ -56,17 +61,116 @@
     </tbody>
 </table>
 
+<!-- Change Password Modal -->
+<div id="changePasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); z-index: 1000;">
+    <div style="background-color: white; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 300px; border-radius: 8px;">
+        <span id="closeModal" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2>Change Password</h2>
+        <form id="changePasswordForm">
+            <div style="margin-bottom: 15px;">
+                <label for="currentPassword" style="display: block; margin-bottom: 5px;">Current Password:</label>
+                <input type="password" id="currentPassword" name="current_password" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="newPassword" style="display: block; margin-bottom: 5px;">New Password:</label>
+                <input type="password" id="newPassword" name="new_password" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="confirmPassword" style="display: block; margin-bottom: 5px;">Confirm Password:</label>
+                <input type="password" id="confirmPassword" name="confirm_password" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Change Password</button>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>
 
 <script>
+// Get email from localStorage (set during login)
+function getUserEmail() {
+    return localStorage.getItem('userEmail') || 'unknown@example.com';
+}
+
+// Get access token from cookies
+function getAccessToken() {
+    const name = 'access_token=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookieArray = decodedCookie.split(';');
+    for(let i = 0; i < cookieArray.length; i++) {
+        let cookie = cookieArray[i].trim();
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length);
+        }
+    }
+    return null;
+}
+
+// Change Password Modal Functions
+document.getElementById('change-password-btn').addEventListener('click', function() {
+    document.getElementById('changePasswordModal').style.display = 'block';
+});
+
+document.getElementById('closeModal').addEventListener('click', function() {
+    document.getElementById('changePasswordModal').style.display = 'none';
+});
+
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('changePasswordModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Handle Change Password Form Submission
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        email: getUserEmail(),
+        current_password: document.getElementById('currentPassword').value,
+        new_password: document.getElementById('newPassword').value,
+        confirm_password: document.getElementById('confirmPassword').value
+    };
+    
+    fetch('/api/auth/change-password/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Authorization': `Bearer ${getAccessToken()}`
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Password change failed');
+        }
+        return data;
+    })
+    .then(data => {
+        alert('Password changed successfully! Please login again with your new password.');
+        // Clear cache and redirect to login
+        localStorage.removeItem('userEmail');
+        window.location.href = '/api/login/';
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        console.error('Password change error:', error);
+    });
+});
+
+// Logout
 document.querySelector('.navbar form').addEventListener('submit', function(e) {
     e.preventDefault();
     
     fetch('/api/auth/logout/', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Authorization': `Bearer ${getAccessToken()}`
         }
     })
     .then(async response => {
@@ -78,6 +182,7 @@ document.querySelector('.navbar form').addEventListener('submit', function(e) {
     })
     .then(data => {
         alert(data.message);
+        localStorage.removeItem('userEmail');
         // Redirect to login page after successful logout
         window.location.href = '/api/login/';
     })

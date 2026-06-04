@@ -32,6 +32,7 @@
 
     <div class="extra-links">
         <p>Don't have an account? <a href="{% url 'signup-page-view' %}">Sign up</a></p>
+        <p>Need to change your password? <a href="{% url 'change-password-page-view' %}">Change Password</a></p>
     </div>
 </div>
 
@@ -71,6 +72,9 @@
             // using cookies instead of localStorage for better security
             document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
             document.cookie = `refresh_token=${data.refresh_token}; path=/; SameSite=Lax`;
+            
+            // Store email in localStorage for dashboard change password feature
+            localStorage.setItem('userEmail', email);
 
             window.location.href = "/api/dashboard/";
         }

@@ -16,9 +16,9 @@ class UserDB:
             return [dict(zip(columns, row)) for row in rows]
 
     @staticmethod
-    def get_user_by_id(email):
+    def get_user_by_id(user_id):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM user WHERE email = %s", [email])
+            cursor.execute("SELECT * FROM user WHERE user_id = %s", [user_id])
             columns = [col[0] for col in cursor.description]  # Extract all column names
             row = cursor.fetchone()
 
@@ -63,3 +63,12 @@ class UserDB:
             return (
                 dict(zip(columns, row)) if row else None
             )  # Return None if user not found
+
+    @staticmethod
+    def update_password(email, hashed_password):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE user SET password = %s WHERE email = %s",
+                [hashed_password, email],
+            )
+            return {"message": "Password updated successfully!"}
