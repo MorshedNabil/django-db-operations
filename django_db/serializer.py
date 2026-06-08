@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 from .database import UserDB
+import os
 
 # The UserSerializer class is a serializer for the User model, 
 # which defines how to convert User instances to and from JSON format. 
@@ -28,17 +29,18 @@ class UserSerializer(serializers.ModelSerializer): # This serializer only used f
 
 
     def validate_email(self, value):
-        user_email = UserDB.get_user_by_email(value)
+        user_email=UserDB.get_user_by_email(value)
 
         if user_email:
             raise serializers.ValidationError("Email already exists.")
-        return value.lower()  # Normalize email to lowercase for consistency
+        return value  # Normalize email to lowercase for consistency
 
 
 # Separate serializer for login — only needs email and password.
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()               
-    password = serializers.CharField(write_only=True)  
+    password = serializers.CharField(write_only=True)    
+    remember_me = False
 
 class SetPassSerializer(serializers.Serializer):
     email = serializers.EmailField()

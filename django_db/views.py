@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import render
 from django.core.cache import cache
+import random
 
 # ================= Web Views =================
 # To protect the web pages like dashboard, we will check for the presence of a valid access token in the cookies.
@@ -53,19 +54,20 @@ def home(request):
 @api_view(['GET', 'POST'])
 def users(request):
     """FOR ADMIN ONLY: List all users or create a new user"""
+    debug_mode = True
     if request.method == "GET":
         # Redis cache is applied for faster read 
         cache_key = 'users'
         
-        cached_users = cache.get('users') # if data already in cache(cache hit) then return from the cache
+        cached_users=cache.get(cache_key) # if data already in cache(cache hit) then return from the cache
 
         if cached_users is not None:
             print("Data coming from cache")
-            return Response(cache.get('users'))
+            return Response(cache.get('user'))
         
         # if data is not in cache then fetch from database and store it in cache for later use
         users = UserDB.get_all_users()
-        cache.set(cache_key, users, timeout= 60*5) # data will be stored in cache for 5 min
+        cache.set(cache_key, users, timeout=60 * 500) # data will be stored in cache for 5 min
 
         return Response(users)
     
@@ -134,7 +136,7 @@ def login(request):
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
 
-        cache_key = f"user_{email}"
+        cache_key = "user_" + email.upper()
         
         user = UserDB.get_user_by_email(email)
 
